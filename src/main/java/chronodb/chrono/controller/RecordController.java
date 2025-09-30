@@ -2,11 +2,11 @@ package chronodb.chrono.controller;
 
 import chronodb.chrono.models.Record;
 import chronodb.chrono.services.RecordService;
+import chronodb.chrono.exception.ResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/records")
@@ -18,36 +18,53 @@ public class RecordController {
         this.recordService = recordService;
     }
 
+    // CREATE a record
     @PostMapping
-    public ResponseEntity<Record> createRecord(@RequestBody Record record) {
-        Record created = recordService.createRecord(record);
+    public ResponseEntity<Record> createRecord(@RequestParam Long repositoryId,
+                                               @RequestParam String createdBy,
+                                               @RequestBody String data) {
+        Record created = recordService.createRecord(repositoryId, data, createdBy);
         return ResponseEntity.ok(created);
     }
 
+    // UPDATE a record
     @PutMapping("/{id}")
     public ResponseEntity<Record> updateRecord(@PathVariable Long id,
-                                               @RequestBody Record updatedRecord) {
-        Optional<Record> record = recordService.updateRecord(id, updatedRecord.getData(), updatedRecord.getUpdatedBy());
-        return record.map(ResponseEntity::ok)
-                     .orElseGet(() -> ResponseEntity.notFound().build());
+                                               @RequestParam String updatedBy,
+                                               @RequestBody String newData) {
+        try {
+            Record updated = recordService.updateRecord(id, newData, updatedBy);
+            return ResponseEntity.ok(updated);
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
+    // GET all records for a repository
     @GetMapping("/repository/{repositoryId}")
     public List<Record> getRecordsByRepository(@PathVariable Long repositoryId) {
         return recordService.getRecordsByRepository(repositoryId);
     }
 
+    // GET a single record
     @GetMapping("/{id}")
     public ResponseEntity<Record> getRecord(@PathVariable Long id) {
-        Optional<Record> record = recordService.getRecord(id);
-        return record.map(ResponseEntity::ok)
-                     .orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            Record record = recordService.getRecord(id);
+            return ResponseEntity.ok(record);
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
+    // DELETE a record
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteRecord(@PathVariable Long id) {
-        boolean deleted = recordService.deleteRecord(id);
-        return deleted ? ResponseEntity.ok("Record deleted")
-                       : ResponseEntity.notFound().build();
+        try {
+            recordService.deleteRecord(id);
+            return ResponseEntity.ok("Record deleted successfully");
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

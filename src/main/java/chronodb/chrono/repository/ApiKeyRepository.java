@@ -1,9 +1,9 @@
-package chronodb.chrono.repository;
+    package chronodb.chrono.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+    import org.springframework.data.jpa.repository.JpaRepository;
 
-import chronodb.chrono.models.ApiKey;
+    import chronodb.chrono.models.ApiKey;
 
-public interface ApiKeyRepository extends JpaRepository<ApiKey,String>{
+    public interface ApiKeyRepository extends JpaRepository<ApiKey,String>{
 
-}
+    }
